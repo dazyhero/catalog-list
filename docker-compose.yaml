@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:14.1-alpine
+    ports:
+      - 5432:5432
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nestjs-api
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/catalog-list?schema=public
+      - JWT_SECRET=secret-key
+      - JWT_EXPIRATION_TIME=256000
+    ports:
+      - '3000:3000'
+    depends_on:
+      - db
+    volumes:
+      - ./src:/app/src
+
+volumes:
+  pgdata:
+    driver: local

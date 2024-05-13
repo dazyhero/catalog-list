@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Catalog {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  isPrimary   Boolean   
+  locales     CatalogLocale[]
+  vertical    Vertical  @relation(fields: [verticalId], references: [id])
+  verticalId  String
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
+
+  @@index([id, userId])
+}
+
+model Vertical {
+  id        String        @id @default(cuid())
+  name      VerticalEnum  @unique
+  catalogs  Catalog[]
+
+  @@index([id, name])
+}
+
+model Locale {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  catalogs  CatalogLocale[]
+
+  @@index([id, name])
+}
+
+model User {
+  id       String   @id @default(cuid())
+  email    String   @unique
+  password String
+  catalogs Catalog[]
+}
+
+model CatalogLocale {
+  locale    Locale    @relation(fields: [localeId], references: [id])
+  catalog   Catalog   @relation(fields: [catalogId], references: [id], onDelete: Cascade)
+  catalogId String
+  localeId  String
+
+  @@id([catalogId, localeId])
+  @@index([catalogId, localeId])
+}
+
+enum VerticalEnum {
+  FASHION
+  HOME
+  GENERAL
+}
